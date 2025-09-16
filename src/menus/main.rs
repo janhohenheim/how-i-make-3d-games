@@ -18,7 +18,7 @@ fn spawn_main_menu(mut commands: Commands, mut setup: Query<Entity, With<Setup>>
     commands.spawn((
         widget::ui_root("Main Menu"),
         GlobalZIndex(2),
-        StateScoped(Menu::Main),
+        DespawnOnExit(Menu::Main),
         #[cfg(not(target_family = "wasm"))]
         children![
             widget::button("Play", enter_loading_or_gameplay_screen),

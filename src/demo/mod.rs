@@ -7,7 +7,7 @@ use bevy::prelude::*;
 
 pub mod camera;
 mod crate_;
-pub mod input;
+//pub mod input;
 pub mod level;
 mod movement;
 pub mod player;
@@ -19,6 +19,6 @@ pub(super) fn plugin(app: &mut App) {
         player::plugin,
         crate_::plugin,
         camera::plugin,
-        input::plugin,
+        //input::plugin,
     ));
 }

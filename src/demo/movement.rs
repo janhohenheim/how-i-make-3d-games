@@ -17,13 +17,13 @@ use std::f32::consts::TAU;
 
 use crate::demo::{
     camera::PlayerCamera,
-    input::{Jump, PlayerInput},
+    //input::{Jump, PlayerInput},
     player::{PLAYER_FLOAT_OFFSET, PLAYER_HEIGHT, Player},
 };
 
-use super::input::Move;
-use bevy::prelude::*;
-use bevy_enhanced_input::prelude::*;
+//use super::input::Move;
+use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+//use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -31,27 +31,47 @@ pub(super) fn plugin(app: &mut App) {
         FixedUpdate,
         apply_movement.in_set(TnuaUserControlsSystemSet),
     );
-    app.add_observer(jump);
+    app.add_systems(
+        RunFixedMainLoop,
+        jump.run_if(input_just_pressed(KeyCode::Space))
+            .in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
+    );
 }
 
 fn apply_movement(
-    player: Single<(&mut TnuaController, &Actions<PlayerInput>), With<Player>>,
+    player: Single<(&mut TnuaController,), With<Player>>,
+    input: Res<ButtonInput<KeyCode>>,
     camera: Single<&Transform, With<PlayerCamera>>,
 ) {
-    let (mut controller, actions) = player.into_inner();
-    let move_input = actions.get::<Move>().unwrap();
+    let (mut controller,) = player.into_inner();
+    //let move_input = actions.get::<Move>().unwrap();
+    let move_input = {
+        let mut move_input = Vec3::ZERO;
+        if input.pressed(KeyCode::KeyW) {
+            move_input -= Vec3::Z;
+        }
+        if input.pressed(KeyCode::KeyS) {
+            move_input += Vec3::Z;
+        }
+        if input.pressed(KeyCode::KeyA) {
+            move_input -= Vec3::X;
+        }
+        if input.pressed(KeyCode::KeyD) {
+            move_input += Vec3::X;
+        }
+        move_input
+    };
     let yaw = camera.rotation.to_euler(EulerRot::YXZ).0;
     let yaw_quat = Quat::from_axis_angle(Vec3::Y, yaw);
     controller.basis(TnuaBuiltinWalk {
-        desired_velocity: yaw_quat * move_input.value * 10.0,
+        desired_velocity: yaw_quat * move_input * 10.0,
         float_height: PLAYER_HEIGHT + PLAYER_FLOAT_OFFSET,
         max_slope: TAU / 8.0,
         ..default()
     });
 }
 
-fn jump(trigger: Trigger<Fired<Jump>>, mut controllers: Query<&mut TnuaController>) {
-    let mut controller = controllers.get_mut(trigger.target()).unwrap();
+fn jump(mut controller: Single<&mut TnuaController>) {
     controller.action(TnuaBuiltinJump {
         height: 1.5,
         ..default()

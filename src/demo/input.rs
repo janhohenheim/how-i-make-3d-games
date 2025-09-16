@@ -36,7 +36,7 @@ pub struct ReleaseCursor;
 pub struct Rotate;
 
 fn bind_player(trigger: Trigger<Bind<PlayerInput>>, mut players: Query<&mut Actions<PlayerInput>>) {
-    let mut actions = players.get_mut(trigger.target()).unwrap();
+    let mut actions = players.get_mut(trigger.entity).unwrap();
 
     actions
         .bind::<Move>()
@@ -54,7 +54,7 @@ fn bind_player(trigger: Trigger<Bind<PlayerInput>>, mut players: Query<&mut Acti
 }
 
 fn bind_camera(trigger: Trigger<Bind<CameraInput>>, mut players: Query<&mut Actions<CameraInput>>) {
-    let mut actions = players.get_mut(trigger.target()).unwrap();
+    let mut actions = players.get_mut(trigger.entity).unwrap();
 
     actions.bind::<Rotate>().to((
         // You can attach modifiers to individual inputs as well.

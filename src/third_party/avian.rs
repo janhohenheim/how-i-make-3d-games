@@ -11,12 +11,12 @@ fn enable_interpolation(
     rigid_body: Query<&RigidBody>,
     mut commands: Commands,
 ) {
-    let Ok(rigid_body) = rigid_body.get(trigger.target()) else {
+    let Ok(rigid_body) = rigid_body.get(trigger.entity) else {
         return;
     };
     if rigid_body.is_dynamic() {
         commands
-            .entity(trigger.target())
+            .entity(trigger.entity)
             .insert(TransformInterpolation);
     }
 }
