@@ -58,7 +58,7 @@ fn apply_movement(
 
     controller.basis(TnuaBuiltinWalk {
         desired_velocity: yaw_quat * last_move * 10.0,
-        float_height: PLAYER_HEIGHT + PLAYER_FLOAT_OFFSET,
+        float_height: PLAYER_HEIGHT / 2.0 + PLAYER_FLOAT_OFFSET,
         max_slope: TAU / 8.0,
         ..default()
     });
@@ -106,12 +106,12 @@ fn accumulate_input(
             move_input += Vec3::X;
             pressed = true;
         }
-        (move_input, pressed)
+        (move_input.clamp_length_max(1.0), pressed)
     };
     if pressed {
         input.last_move.replace(move_input);
     }
-    let jump = new_input.just_pressed(KeyCode::Space);
+    let jump = new_input.pressed(KeyCode::Space);
     if jump {
         input.jumped = true;
     }

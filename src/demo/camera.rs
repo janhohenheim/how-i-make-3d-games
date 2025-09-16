@@ -25,7 +25,13 @@ pub(super) fn plugin(app: &mut App) {
         RunFixedMainLoop,
         rotate_camera.in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
     );
-    app.add_observer(capture_cursor);
+    app.add_systems(
+        RunFixedMainLoop,
+        capture_cursor
+            .in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop)
+            .run_if(in_state(Screen::Gameplay))
+            .run_if(input_just_pressed(MouseButton::Left)),
+    );
     app.add_systems(
         RunFixedMainLoop,
         release_cursor
@@ -75,7 +81,6 @@ fn rotate_camera(
 }
 
 fn capture_cursor(
-    _trigger: Trigger<Pointer<Press>>,
     mut cursor_options: Single<&mut CursorOptions>,
     menu: Res<State<Menu>>,
     next_menu: Res<NextState<Menu>>,
@@ -105,6 +110,5 @@ fn position_camera_at_player(
     mut camera: Single<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
     player: Single<&Transform, With<Player>>,
 ) {
-    camera.translation =
-        player.translation + Vec3::Y * (1.8 - PLAYER_HEIGHT / 2.0 - PLAYER_FLOAT_OFFSET);
+    camera.translation = player.translation + Vec3::Y * (1.8 - PLAYER_HEIGHT / 2.0);
 }

@@ -19,7 +19,7 @@ pub struct Player;
 const CAPSULE_LEN: f32 = 1.0;
 const CAPSULE_RADIUS: f32 = 0.4;
 pub const PLAYER_HEIGHT: f32 = CAPSULE_LEN + 2.0 * CAPSULE_RADIUS;
-pub const PLAYER_FLOAT_OFFSET: f32 = 0.3;
+pub const PLAYER_FLOAT_OFFSET: f32 = 0.01;
 
 fn spawn_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
     commands.entity(trigger.entity).insert((
@@ -30,5 +30,10 @@ fn spawn_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
         LockedAxes::ROTATION_LOCKED,
         //Actions::<PlayerInput>::default(),
         ColliderDensity(100.0),
+        Friction {
+            dynamic_coefficient: 0.0,
+            static_coefficient: 0.0,
+            combine_rule: CoefficientCombine::Multiply,
+        },
     ));
 }
