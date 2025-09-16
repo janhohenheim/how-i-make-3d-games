@@ -8,6 +8,7 @@ mod audio;
 mod demo;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod fixed_update_inspection;
 mod menus;
 mod screens;
 mod theme;
@@ -67,6 +68,7 @@ impl Plugin for AppPlugin {
             menus::plugin,
             screens::plugin,
             theme::plugin,
+            fixed_update_inspection::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:
