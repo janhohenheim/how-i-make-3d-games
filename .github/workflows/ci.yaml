@@ -15,7 +15,7 @@ env:
   RUSTFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0
   RUSTDOCFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0
   # Use the same Rust toolchain across jobs so they can share a cache.
-  toolchain: nightly-2025-05-14
+  toolchain: nightly-2025-06-26
 
 jobs:
   # Check formatting.
@@ -102,38 +102,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+      - name: Install Rust toolchain (plus bevy_lint)
+        uses: TheBevyFlock/bevy_cli/bevy_lint@lint-v0.4.0
         with:
-          components: rustc-codegen-cranelift-preview, rustc-dev, llvm-tools-preview
-          toolchain: ${{ env.toolchain }}
+          cache: true
+          save-cache-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Install dependencies
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
-
-      - name: Populate target directory from cache
+      - name: Restore Rust cache
+        id: cache
         uses: Swatinem/rust-cache@v2
         with:
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-          shared-key: lints
+          shared-key: ci
+          save-if: false
 
-      - name: Install Bevy linter
-        run: cargo install --git https://github.com/TheBevyFlock/bevy_cli --rev 9a24ac4a555f028f9d32017e95fcd1efcee1d3d3 --branch main --locked bevy_lint
+      - name: Install build dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
-      - name: Add cranelift to rustc
-        run: rustup component add rustc-codegen-cranelift-preview --toolchain ${{ env.toolchain }}
-
-      - name: Active CI cargo config
-        run: mv .cargo/config_ci.toml .cargo/config.toml
-
-      - name: Install cargo binstall
-        uses: cargo-bins/cargo-binstall@main
-
-      - name: Install Wild
-        run: cargo binstall wild-linker --locked --force
-
-      - name: Run Bevy linter
-        run: bevy_lint --locked --workspace --all-targets --all-features
+      - name: Run Bevy lints
+        run: bevy_lint --locked --workspace --all-targets --profile ci --all-features
 
   # Run tests.
   tests:
@@ -174,6 +161,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up environment
+        run: echo "RUSTFLAGS=${RUSTFLAGS:+$RUSTFLAGS }--cfg getrandom_backend=\"wasm_js\"" >> "${GITHUB_ENV}"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master

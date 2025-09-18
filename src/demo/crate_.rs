@@ -9,7 +9,7 @@ pub(super) fn plugin(app: &mut App) {
 #[point_class(base(Visibility, Transform), model("models/crate/crate01.gltf"))]
 struct Crate;
 
-fn spawn_crate(trigger: Trigger<OnAdd, Crate>, mut commands: Commands, assets: Res<AssetServer>) {
+fn spawn_crate(trigger: On<Add, Crate>, mut commands: Commands, assets: Res<AssetServer>) {
     let model_path = Crate::CLASS_INFO.model_path().unwrap().to_string();
     let scene_path = GltfAssetLabel::Scene(0).from_asset(model_path);
     commands.entity(trigger.entity).insert((

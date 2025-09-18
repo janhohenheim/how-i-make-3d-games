@@ -7,7 +7,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn enable_interpolation(
-    trigger: Trigger<OnAdd, RigidBody>,
+    trigger: On<Add, RigidBody>,
     rigid_body: Query<&RigidBody>,
     mut commands: Commands,
 ) {

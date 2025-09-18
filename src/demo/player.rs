@@ -21,7 +21,7 @@ const CAPSULE_RADIUS: f32 = 0.4;
 pub const PLAYER_HEIGHT: f32 = CAPSULE_LEN + 2.0 * CAPSULE_RADIUS;
 pub const PLAYER_FLOAT_OFFSET: f32 = 0.01;
 
-fn spawn_player(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
+fn spawn_player(trigger: On<Add, Player>, mut commands: Commands) {
     commands.entity(trigger.entity).insert((
         RigidBody::Dynamic,
         Collider::capsule(CAPSULE_RADIUS, CAPSULE_LEN),

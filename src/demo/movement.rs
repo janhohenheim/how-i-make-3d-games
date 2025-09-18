@@ -117,7 +117,7 @@ fn accumulate_input(
     }
 }
 
-fn init_accumulated_input(trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
+fn init_accumulated_input(trigger: On<Add, Player>, mut commands: Commands) {
     commands
         .entity(trigger.entity)
         .insert(AccumulatedInput::default());

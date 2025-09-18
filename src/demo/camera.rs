@@ -12,7 +12,7 @@ use bevy::{
 use crate::{
     demo::{
         //input::{CameraInput, CaptureCursor, ReleaseCursor, Rotate},
-        player::{PLAYER_FLOAT_OFFSET, PLAYER_HEIGHT, Player},
+        player::{PLAYER_HEIGHT, Player},
     },
     menus::Menu,
     screens::Screen,
@@ -44,7 +44,7 @@ pub(super) fn plugin(app: &mut App) {
 #[reflect(Component)]
 pub struct PlayerCamera;
 
-fn spawn_camera(_trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
+fn spawn_camera(_trigger: On<Add, Player>, mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         Camera {
@@ -58,7 +58,7 @@ fn spawn_camera(_trigger: Trigger<OnAdd, Player>, mut commands: Commands) {
 }
 
 fn rotate_camera(
-    //trigger: Trigger<Fired<Rotate>>,
+    //trigger: On<Fired<Rotate>>,
     trigger: Res<AccumulatedMouseMotion>,
     mut camera: Single<&mut Transform, With<PlayerCamera>>,
     cursor_options: Single<&CursorOptions>,
@@ -91,7 +91,7 @@ fn capture_cursor(
 }
 
 fn release_cursor(
-    //_trigger: Trigger<Pointer<Release>>,
+    //_trigger: On<Pointer<Release>>,
     mut cursor_options: Single<&mut CursorOptions>,
 ) {
     grab_cursor(&mut cursor_options, false);
