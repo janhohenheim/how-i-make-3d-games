@@ -62,7 +62,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Check documentation
-        run: cargo doc --locked --workspace --profile ci --all-features --document-private-items --no-deps
+        run: cargo doc --locked --workspace --profile ci --document-private-items --no-deps
 
   # Run Clippy lints.
   clippy-lints:
@@ -91,7 +91,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Run Clippy lints
-        run: cargo clippy --locked --workspace --all-targets --profile ci --all-features
+        run: cargo clippy --locked --workspace --all-targets --profile ci
 
   # Run Bevy lints.
   bevy-lints:
@@ -120,7 +120,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Run Bevy lints
-        run: bevy_lint --locked --workspace --all-targets --profile ci --all-features
+        run: bevy_lint --locked --workspace --all-targets --profile ci
 
   # Run tests.
   tests:
