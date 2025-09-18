@@ -15,45 +15,116 @@
 
 use std::f32::consts::TAU;
 
-use crate::demo::{
-    camera::PlayerCamera,
-    input::{Jump, PlayerInput},
-    player::{PLAYER_FLOAT_OFFSET, PLAYER_HEIGHT, Player},
+use crate::{
+    demo::{
+        camera::PlayerCamera,
+        //input::{Jump, PlayerInput},
+        player::{PLAYER_FLOAT_OFFSET, PLAYER_HEIGHT, Player},
+    },
+    fixed_update_inspection::did_fixed_update_happen,
 };
 
-use super::input::Move;
-use bevy::prelude::*;
-use bevy_enhanced_input::prelude::*;
+//use super::input::Move;
+use bevy::{input::InputSystems, prelude::*};
+//use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
-        apply_movement.in_set(TnuaUserControlsSystemSet),
+        (apply_movement, apply_jump).in_set(TnuaUserControlsSystemSet),
     );
-    app.add_observer(jump);
+    app.add_systems(
+        Update,
+        clear_accumulated_input.run_if(did_fixed_update_happen),
+    );
+    app.add_systems(PreUpdate, accumulate_input.after(InputSystems));
+    app.add_observer(init_accumulated_input);
+
+    app.register_type::<AccumulatedInput>();
 }
 
 fn apply_movement(
-    player: Single<(&mut TnuaController, &Actions<PlayerInput>), With<Player>>,
-    camera: Single<&Transform, With<PlayerCamera>>,
+    controller: Single<(&mut TnuaController, &AccumulatedInput)>,
+    transform: Single<&Transform, With<PlayerCamera>>,
 ) {
-    let (mut controller, actions) = player.into_inner();
-    let move_input = actions.get::<Move>().unwrap();
-    let yaw = camera.rotation.to_euler(EulerRot::YXZ).0;
+    let (mut controller, accumulated_input) = controller.into_inner();
+    let last_move = accumulated_input.last_move.unwrap_or_default();
+    // Feed the basis every frame. Even if the player doesn't move - just use `desired_velocity:
+    // Vec3::ZERO`. `TnuaController` starts without a basis, which will make the character collider
+    // just fall.
+    let yaw = transform.rotation.to_euler(EulerRot::YXZ).0;
     let yaw_quat = Quat::from_axis_angle(Vec3::Y, yaw);
+
     controller.basis(TnuaBuiltinWalk {
-        desired_velocity: yaw_quat * move_input.value * 10.0,
-        float_height: PLAYER_HEIGHT + PLAYER_FLOAT_OFFSET,
+        desired_velocity: yaw_quat * last_move * 10.0,
+        float_height: PLAYER_HEIGHT / 2.0 + PLAYER_FLOAT_OFFSET,
         max_slope: TAU / 8.0,
         ..default()
     });
 }
 
-fn jump(trigger: Trigger<Fired<Jump>>, mut controllers: Query<&mut TnuaController>) {
-    let mut controller = controllers.get_mut(trigger.target()).unwrap();
-    controller.action(TnuaBuiltinJump {
-        height: 1.5,
-        ..default()
-    });
+fn apply_jump(controller: Single<(&mut TnuaController, &AccumulatedInput)>) {
+    let (mut controller, input) = controller.into_inner();
+    if input.jumped {
+        controller.action(TnuaBuiltinJump {
+            height: 1.5,
+            ..default()
+        });
+    }
+}
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+struct AccumulatedInput {
+    // The last non-zero move that was inputed since the last fixed update
+    last_move: Option<Vec3>,
+    // Whether any frame since the fixed update input contained a jump
+    jumped: bool,
+}
+
+fn accumulate_input(
+    mut input: Single<&mut AccumulatedInput>,
+    new_input: Res<ButtonInput<KeyCode>>,
+) {
+    let (move_input, pressed) = {
+        let mut move_input = Vec3::ZERO;
+        let mut pressed = false;
+        if new_input.pressed(KeyCode::KeyW) {
+            move_input -= Vec3::Z;
+            pressed = true;
+        }
+        if new_input.pressed(KeyCode::KeyS) {
+            move_input += Vec3::Z;
+            pressed = true;
+        }
+        if new_input.pressed(KeyCode::KeyA) {
+            move_input -= Vec3::X;
+            pressed = true;
+        }
+        if new_input.pressed(KeyCode::KeyD) {
+            move_input += Vec3::X;
+            pressed = true;
+        }
+        (move_input.clamp_length_max(1.0), pressed)
+    };
+    if pressed {
+        input.last_move.replace(move_input);
+    }
+    let jump = new_input.pressed(KeyCode::Space);
+    if jump {
+        input.jumped = true;
+    }
+}
+
+fn init_accumulated_input(trigger: On<Add, Player>, mut commands: Commands) {
+    commands
+        .entity(trigger.entity)
+        .insert(AccumulatedInput::default());
+}
+
+fn clear_accumulated_input(mut accumulated_inputs: Query<&mut AccumulatedInput>) {
+    for mut accumulated_input in &mut accumulated_inputs {
+        *accumulated_input = default();
+    }
 }

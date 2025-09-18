@@ -29,7 +29,7 @@ impl FromWorld for LevelAssets {
 pub fn spawn_level(mut commands: Commands, level_assets: Res<LevelAssets>) {
     commands.spawn((
         SceneRoot(level_assets.map.clone()),
-        StateScoped(Screen::Gameplay),
+        DespawnOnExit(Screen::Gameplay),
         children![(
             DirectionalLight {
                 shadows_enabled: true,
