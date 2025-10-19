@@ -2,12 +2,11 @@
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
-//use bevy_enhanced_input::prelude::*;
 use bevy_tnua::prelude::*;
 use bevy_tnua_avian3d::*;
 use bevy_trenchbroom::prelude::*;
 
-//use crate::demo::input::PlayerInput;
+use crate::demo::input::PlayerInput;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(spawn_player);
@@ -27,8 +26,7 @@ fn spawn_player(trigger: On<Add, Player>, mut commands: Commands) {
         Collider::capsule(CAPSULE_RADIUS, CAPSULE_LEN),
         TnuaController::default(),
         TnuaAvian3dSensorShape(Collider::cylinder(CAPSULE_RADIUS - 0.01, 0.0)),
-        LockedAxes::ROTATION_LOCKED,
-        //Actions::<PlayerInput>::default(),
+        PlayerInput,
         ColliderDensity(100.0),
         Friction {
             dynamic_coefficient: 0.0,

@@ -17,26 +17,14 @@ tracing = { version = "0.1", features = [
 ] }
 
 
-bevy = "0.17.0-rc"
-rand = "0.8"
-bevy_trenchbroom = { version = "0.9", git = "https://github.com/Noxmore/bevy_trenchbroom", branch = "bevy-0.17", features = ["avian"] }
-avian3d = { version = "0.3", git = "https://github.com/Jondolf/avian", branch = "bevy-0.17" }
-bevy-tnua = { version = "0.25.0-rc", git = "https://github.com/janhohenheim/bevy-tnua", branch = "bevy-0.17.0-dev"}
-bevy-tnua-avian3d = { version = "0.6.0-rc", git = "https://github.com/janhohenheim/bevy-tnua", branch = "bevy-0.17.0-dev"}
-bevy_framepace = { version = "0.20.0-rc", git = "https://github.com/janhohenheim/bevy_framepace", branch = "bevy-0.17.0-dev"}
-#bevy_enhanced_input = "0.14.1"
-
-# Your web builds will start failing if you add a dependency that pulls in `getrandom` v0.3+.
-# To fix this, you should tell `getrandom` to use the `wasm_js` backend on Wasm.
-# See: <https://docs.rs/getrandom/0.3.3/getrandom/#webassembly-support>.
-#[target.wasm32-unknown-unknown.dependencies]
-#getrandom = { version = "0.3", features = ["wasm_js"] }
-# In addition to enabling the `wasm_js` feature, you need to include `--cfg 'getrandom_backend="wasm_js"'`
-# in your rustflags for both local and CI/CD web builds, taking into account that rustflags specified in
-# multiple places are NOT combined (see <https://github.com/rust-lang/cargo/issues/5376>).
-# Alternatively, you can opt out of the rustflags check with this patch:
-#[patch.crates-io]
-#getrandom = { git = "https://github.com/benfrankel/getrandom" }
+bevy = "0.17"
+rand = "0.9"
+bevy_trenchbroom = { version = "0.10", git = "https://github.com/Noxmore/bevy_trenchbroom", features = ["avian"] }
+avian3d = "0.4"
+bevy-tnua = "0.26"
+bevy-tnua-avian3d = "0.7.0"
+bevy_framepace = "0.20"
+bevy_enhanced_input = "0.19"
 
 [features]
 # Default to a native dev build.

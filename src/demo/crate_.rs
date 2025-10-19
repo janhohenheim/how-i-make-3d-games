@@ -16,6 +16,6 @@ fn spawn_crate(trigger: On<Add, Crate>, mut commands: Commands, assets: Res<Asse
         SceneRoot(assets.load(scene_path)),
         RigidBody::Dynamic,
         ColliderConstructorHierarchy::new(ColliderConstructor::ConvexHullFromMesh)
-            .with_default_density(ColliderDensity(100.0)),
+            .with_default_density(ColliderDensity(50.0)),
     ));
 }

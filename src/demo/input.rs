@@ -1,67 +1,46 @@
+//! Input handling for the player.
+
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
+use crate::demo::movement::AccumulatedInput;
+
 pub(super) fn plugin(app: &mut App) {
     app.add_input_context::<PlayerInput>();
-    app.add_input_context::<CameraInput>();
-    app.add_observer(bind_player);
-    app.add_observer(bind_camera);
+    app.add_observer(bind_inputs);
 }
 
-#[derive(InputContext)]
-#[input_context(schedule = FixedPreUpdate)]
-pub struct PlayerInput;
-
-#[derive(InputContext)]
-pub struct CameraInput;
+#[derive(Debug, InputAction)]
+#[action_output(Vec3)]
+pub(crate) struct Move;
 
 #[derive(Debug, InputAction)]
-#[input_action(output = Vec3)]
-pub struct Move;
+#[action_output(bool)]
+pub(crate) struct Jump;
 
 #[derive(Debug, InputAction)]
-#[input_action(output = bool)]
-pub struct Jump;
+#[action_output(Vec2)]
+pub(crate) struct Rotate;
 
-#[derive(Debug, InputAction)]
-#[input_action(output = bool)]
-pub struct CaptureCursor;
+#[derive(Debug, Component, Default)]
+#[require(AccumulatedInput)]
+pub(crate) struct PlayerInput;
 
-#[derive(Debug, InputAction)]
-#[input_action(output = bool)]
-pub struct ReleaseCursor;
-
-#[derive(Debug, InputAction)]
-#[input_action(output = Vec2)]
-pub struct Rotate;
-
-fn bind_player(trigger: On<Bind<PlayerInput>>, mut players: Query<&mut Actions<PlayerInput>>) {
-    let mut actions = players.get_mut(trigger.entity).unwrap();
-
-    actions
-        .bind::<Move>()
-        .to((Cardinal::wasd_keys(), Axial::left_stick()))
-        .with_modifiers((
-            DeadZone::default(),
+fn bind_inputs(add: On<Add, PlayerInput>, mut commands: Commands) {
+    const DEFAULT_SENSITIVITY: f32 = 0.1;
+    commands.entity(add.entity).insert(actions!(PlayerInput[
+        (
+            Action::<Move>::new(), DeadZone::default(),
             SmoothNudge::default(),
             Negate::y(),
             SwizzleAxis::XZY,
-        ));
-
-    actions
-        .bind::<Jump>()
-        .to((KeyCode::Space, GamepadButton::South));
-}
-
-fn bind_camera(trigger: On<Bind<CameraInput>>, mut players: Query<&mut Actions<CameraInput>>) {
-    let mut actions = players.get_mut(trigger.entity).unwrap();
-
-    actions.bind::<Rotate>().to((
-        // You can attach modifiers to individual inputs as well.
-        Input::mouse_motion().with_modifiers((Scale::splat(0.1), Negate::all())),
-        Axial::right_stick().with_modifiers_each((Scale::splat(2.0), Negate::x())),
-    ));
-
-    actions.bind::<CaptureCursor>().to(MouseButton::Left);
-    actions.bind::<ReleaseCursor>().to(KeyCode::Escape);
+            Bindings::spawn((
+                Cardinal::wasd_keys(),
+                Axial::left_stick()
+            ))
+        ),
+        (Action::<Jump>::new(), bindings![KeyCode::Space, GamepadButton::South]),
+        (Action::<Rotate>::new(),Negate::all(), Scale::splat(DEFAULT_SENSITIVITY),
+            Bindings::spawn((Spawn(Binding::mouse_motion()), Axial::right_stick()))),
+    ]));
 }

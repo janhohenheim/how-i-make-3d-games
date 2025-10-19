@@ -3,15 +3,16 @@
 use std::f32::consts::TAU;
 
 use bevy::{
-    input::{common_conditions::input_just_pressed, mouse::AccumulatedMouseMotion},
+    input::common_conditions::input_just_pressed,
     prelude::*,
     window::{CursorGrabMode, CursorOptions},
 };
-//use bevy_enhanced_input::prelude::*;
+use bevy_enhanced_input::prelude::*;
 
 use crate::{
     demo::{
         //input::{CameraInput, CaptureCursor, ReleaseCursor, Rotate},
+        input::Rotate,
         player::{PLAYER_HEIGHT, Player},
     },
     menus::Menu,
@@ -21,10 +22,7 @@ use crate::{
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(spawn_camera);
     app.add_systems(Update, position_camera_at_player);
-    app.add_systems(
-        RunFixedMainLoop,
-        rotate_camera.in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
-    );
+    app.add_observer(rotate_camera);
     app.add_systems(
         RunFixedMainLoop,
         capture_cursor
@@ -53,13 +51,11 @@ fn spawn_camera(_trigger: On<Add, Player>, mut commands: Commands) {
         },
         PlayerCamera,
         DespawnOnExit(Screen::Gameplay),
-        //Actions::<CameraInput>::default(),
     ));
 }
 
 fn rotate_camera(
-    //trigger: On<Fired<Rotate>>,
-    trigger: Res<AccumulatedMouseMotion>,
+    rotate: On<Fire<Rotate>>,
     mut camera: Single<&mut Transform, With<PlayerCamera>>,
     cursor_options: Single<&CursorOptions>,
     time: Res<Time<Virtual>>,
@@ -73,8 +69,9 @@ fn rotate_camera(
 
     let (mut yaw, mut pitch, _) = camera.rotation.to_euler(EulerRot::YXZ);
 
-    yaw -= trigger.delta.x.to_radians() * 0.1;
-    pitch -= trigger.delta.y.to_radians() * 0.1;
+    let delta = rotate.value;
+    yaw += delta.x.to_radians();
+    pitch += delta.y.to_radians();
     pitch = pitch.clamp(-TAU / 4.0 + 0.01, TAU / 4.0 - 0.01);
 
     camera.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, 0.0);
